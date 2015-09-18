@@ -1,0 +1,21 @@
+{
+    "name": "matacms/matacms-language",
+    "description": "Language support for MATACMS",
+    "keywords": ["yii2", "matacms-language", "language", "mata"],
+    "type": "yii2-extension",
+    "license": "MIT",
+    "support": {
+    },
+    "minimum-stability": "stable",
+    "require": {
+        "matacms/matacms-base": "~1.1-alpha",
+    },
+    "autoload": {
+        "psr-4": {
+            "matacms\\language\\": ""
+        }
+    },
+    "extra": {
+        "bootstrap": "matacms\\language\\Bootstrap"
+    }
+}
