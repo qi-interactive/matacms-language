@@ -67,17 +67,17 @@ class Bootstrap extends \mata\base\Bootstrap {
 
 		$activeQuery->innerJoin("matacms_itemenvironment " . $alias, "`" . $alias . "`.`DocumentId` = " . $documentId);
 
-		 // TODO refactor and use Query!
+		 // TODO: refactor and use Query!
 		 if (Yii::$app->user->isGuest) {
 		 	$liveEnvironment = $module->getLiveEnvironment();
 
 		 	$activeQuery->andWhere($alias . ".Revision = (SELECT Revision FROM matacms_itemenvironment " . $alias . "rev WHERE . " . $alias . "rev.`DocumentId` = " . $alias . ".DocumentId
 		 	 			 AND " . $alias . "rev.`Status` = '" . $liveEnvironment . "' ORDER BY " . $alias . ".Revision DESC LIMIT 1)");
-		 	} else {
-		 		$activeQuery->andWhere($alias . ".Revision = (SELECT Revision FROM matacms_itemenvironment " . $alias . "rev WHERE " . $alias . "rev.`DocumentId` = " . $alias . ".DocumentId
-		 			 			 ORDER BY " . $alias . ".Revision DESC LIMIT 1)");
+	 	} else {
+	 		$activeQuery->andWhere($alias . ".Revision = (SELECT Revision FROM matacms_itemenvironment " . $alias . "rev WHERE " . $alias . "rev.`DocumentId` = " . $alias . ".DocumentId
+	 			 			 ORDER BY " . $alias . ".Revision DESC LIMIT 1)");
 
-		 	}
+	 	}
 	}
 
 	private function setLanguage($model) {
@@ -85,7 +85,7 @@ class Bootstrap extends \mata\base\Bootstrap {
 		if (is_object($model) == false || !$model->hasAttribute('Language'))
 			return;
 
-		$language = Yii::$app->language
+		$language = Yii::$app->language;
 
 		$model->Language = $language;
 	}
