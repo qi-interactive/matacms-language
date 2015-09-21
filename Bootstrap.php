@@ -77,6 +77,7 @@ class Bootstrap extends \mata\base\Bootstrap {
 
 		$language = Yii::$app->language;
 
-		$model->Language = $language;
+		if(empty($model->Language))
+			$model->Language = $language;
 	}
 }
