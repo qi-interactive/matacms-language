@@ -20,16 +20,18 @@ class Bootstrap extends \mata\base\Bootstrap {
 
 	public function bootstrap($app) {
 
-		$module = \Yii::$app->getModule("language");
+		if (!is_a(\Yii::$app, "yii\console\Application")) {
+			$module = \Yii::$app->getModule("language");
 
-		$supportedLanguages = $module->getSupportedLanguages();
+			$supportedLanguages = $module->getSupportedLanguages();
 
-		$preferredLanguage = isset($app->request->cookies['language']) ? (string)$app->request->cookies['language'] : null;
+			$preferredLanguage = isset($app->request->cookies['language']) ? (string)$app->request->cookies['language'] : null;
 
-        if (empty($preferredLanguage)) {
-            $preferredLanguage = $app->request->getPreferredLanguage($supportedLanguages);
-        }
-		$app->language = $preferredLanguage;
+	        if (empty($preferredLanguage)) {
+	            $preferredLanguage = $app->request->getPreferredLanguage($supportedLanguages);
+	        }
+			$app->language = $preferredLanguage;
+		}
 
 		Event::on(BaseActiveRecord::class, BaseActiveRecord::EVENT_BEFORE_INSERT, function(Event $event) {
 			$model = $event->sender;
