@@ -1,5 +1,5 @@
 {
-    "name": "MATACMS Language",
+    "name": "Language",
     "description": "Language support for MATACMS",
     "icon" : "/images/module-icon.svg",
     "version" : "1.0.0-alpha"
