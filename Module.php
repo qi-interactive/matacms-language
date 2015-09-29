@@ -8,6 +8,7 @@
 
 namespace matacms\language;
 
+use Yii;
 use mata\base\Module as BaseModule;
 use matacms\settings\models\Setting;
 use matacms\language\models\I18nSourceMessage;
@@ -24,22 +25,22 @@ class Module extends BaseModule {
 
 	public function getNavigation() {
 
-		$categories = ArrayHelper::getColumn(
-            I18nSourceMessage::find()->select('category')->distinct()->all(),
-            'category'
-        );
+		// $categories = ArrayHelper::getColumn(
+        //     I18nSourceMessage::find()->select('category')->distinct()->all(),
+        //     'category'
+        // );
+		//
+		// $navigation = [];
+		//
+        // foreach($categories as $category) {
+		// 	$navigation[] = [
+		// 		'label' => Inflector::humanize($category),
+		// 		'url' => "/mata-cms/language/message?category=" . $category,
+		// 		'icon' => "/images/module-icon.svg"
+		// 	];
+        // }
 
-		$navigation = [];
-
-        foreach($categories as $category) {
-			$navigation[] = [
-				'label' => Inflector::humanize($category),
-				'url' => "/mata-cms/language/message?category=" . $category,
-				'icon' => "/images/module-icon.svg"
-			];
-        }
-
-		return $navigation;
+		return "/mata-cms/language/message";
 	}
 
 	public function getSupportedLanguages()
@@ -47,5 +48,10 @@ class Module extends BaseModule {
 		$supportedLanguages = Setting::findValue('SUPPORTED_LANGUAGES');
 		return $supportedLanguages != null ? unserialize($supportedLanguages) : [\Yii::$app->language];
 	}
+
+    public static function t($message, $params = [], $language = null)
+    {
+        return Yii::t('frontend', $message, $params, $language);
+    }
 
 }

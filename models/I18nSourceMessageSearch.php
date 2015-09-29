@@ -69,6 +69,10 @@ class I18nSourceMessageSearch extends I18nSourceMessage
              }
         ]);
 
+        $query->andFilterWhere([
+            '{{%matacms_i18n_source_message}}.category' => 'frontend',
+        ]);
+
         $dataProvider = new ActiveDataProvider([
             'query' => $query,
         ]);
