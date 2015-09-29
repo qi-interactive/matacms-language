@@ -10,6 +10,9 @@ namespace matacms\language;
 
 use mata\base\Module as BaseModule;
 use matacms\settings\models\Setting;
+use matacms\language\models\I18nSourceMessage;
+use yii\helpers\ArrayHelper;
+use yii\helpers\Inflector;
 
 class Module extends BaseModule {
 
@@ -20,7 +23,23 @@ class Module extends BaseModule {
 	}
 
 	public function getNavigation() {
-		return false;
+
+		$categories = ArrayHelper::getColumn(
+            I18nSourceMessage::find()->select('category')->distinct()->all(),
+            'category'
+        );
+
+		$navigation = [];
+
+        foreach($categories as $category) {
+			$navigation[] = [
+				'label' => Inflector::humanize($category),
+				'url' => "/mata-cms/language/message?category=" . $category,
+				'icon' => "/images/module-icon.svg"
+			];
+        }
+
+		return $navigation;
 	}
 
 	public function getSupportedLanguages()

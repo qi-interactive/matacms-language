@@ -64,4 +64,5 @@ class I18nMessageSearch extends I18nMessage
 
         return $dataProvider;
     }
+    
 }

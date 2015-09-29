@@ -23,7 +23,7 @@ class Bootstrap extends \mata\base\Bootstrap {
 		if (!is_a(\Yii::$app, "yii\console\Application")) {
 			$module = \Yii::$app->getModule("language");
 
-			$supportedLanguages = $module->getSupportedLanguages();
+			$supportedLanguages = array_keys($module->getSupportedLanguages());
 
 			$preferredLanguage = isset($app->request->cookies['language']) ? (string)$app->request->cookies['language'] : null;
 

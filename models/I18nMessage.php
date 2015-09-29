@@ -28,13 +28,17 @@ class I18nMessage extends \yii\db\ActiveRecord
         return '{{%matacms_i18n_message}}';
     }
 
+    public function behaviors() {
+        return [];
+    }
+
     /**
      * @inheritdoc
      */
     public function rules()
     {
         return [
-            [['id', 'language'], 'required'],
+            [['id', 'language', 'translation'], 'required'],
             [['id'], 'exist', 'targetClass' => I18nSourceMessage::className(), 'targetAttribute'=>'id'],
             [['translation'], 'string'],
             [['language'], 'string', 'max' => 16],

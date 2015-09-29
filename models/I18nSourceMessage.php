@@ -23,6 +23,10 @@ class I18nSourceMessage extends \yii\db\ActiveRecord
         return '{{%matacms_i18n_source_message}}';
     }
 
+    public function behaviors() {
+        return [];
+    }
+
     /**
      * @inheritdoc
      */
@@ -53,4 +57,14 @@ class I18nSourceMessage extends \yii\db\ActiveRecord
     {
         return $this->hasMany(I18nMessage::className(), ['id' => 'id']);
     }
+
+    public function filterableAttributes() {
+        return ["message"];
+    }
+
+    public function getLabel()
+    {
+        return $this->message;
+    }
+
 }

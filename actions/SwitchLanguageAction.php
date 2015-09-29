@@ -38,7 +38,7 @@ class SwitchLanguageAction extends \yii\base\Action
 
 		$supportedLanguages = $module->getSupportedLanguages();
 
-		if(!in_array($language, $supportedLanguages))
+		if(!array_key_exists($language, $supportedLanguages))
 			throw new \yii\web\HttpException('Languge is not supported');
 
 		return $language;

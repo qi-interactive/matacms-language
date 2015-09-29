@@ -59,4 +59,36 @@ class I18nSourceMessageSearch extends I18nSourceMessage
 
         return $dataProvider;
     }
+
+    public function searchWithMessagesForLanguage($params, $language)
+    {
+
+        $query = I18nSourceMessage::find()->joinWith([
+             'i18nMessages' => function ($query) use ($language) {
+                 $query->onCondition(['language' => $language]);
+             }
+        ]);
+
+        $dataProvider = new ActiveDataProvider([
+            'query' => $query,
+        ]);
+
+        $this->load($params);
+
+        if (!$this->validate()) {
+            // uncomment the following line if you do not want to any records when validation fails
+            // $query->where('0=1');
+            return $dataProvider;
+        }
+
+
+        $query->andFilterWhere([
+            '{{%matacms_i18n_source_message}}.id' => $this->id,
+        ]);
+
+        $query->andFilterWhere(['like', '{{%matacms_i18n_source_message}}.category', $this->category])
+            ->andFilterWhere(['like', '{{%matacms_i18n_source_message}}.message', $this->message]);
+
+        return $dataProvider;
+    }
 }
