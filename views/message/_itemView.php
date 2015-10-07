@@ -10,25 +10,31 @@ if($messageModel->isNewRecord)
 
 ?>
 
-<div class="i18n-message-form">
+<div class="details-view">
+    <div class="i18n-message-form item">
 
-    <?php $form = ActiveForm::begin([
-		'action' => ['message/save'],
-		]); ?>
+        <?php $form = ActiveForm::begin([
+          'action' => ['message/save'],
+          ]); ?>
+          <div class="row">
+            <div class="three columns item-label">
+                <?= $model->message ?>
+            </div>
+            <div class="nine columns info">
+                <?= $form->field($messageModel, 'translation')->label(''); ?>
+            </div>
+        </div>
+        <?= Html::hiddenInput(Html::getInputName($messageModel, 'language'), $messageModel->language) ?>
 
-    <?= $form->field($messageModel, 'translation')->label($model->message) ?>
+        <?= Html::hiddenInput(Html::getInputName($messageModel, 'id'), $model->id) ?>
 
-    <?= Html::hiddenInput(Html::getInputName($messageModel, 'language'), $messageModel->language) ?>
+        <?php ActiveForm::end(); ?>
 
-    <?= Html::hiddenInput(Html::getInputName($messageModel, 'id'), $model->id) ?>
-
-    <?php ActiveForm::end(); ?>
-
-    <?php
-    $this->registerJs("
-        $('#" . $form->id . " #" . Html::getInputId($messageModel, 'translation') . "').on('blur', function(){
-            $('#" . $form->id . "').trigger('submit');
-        });
+        <?php
+        $this->registerJs("
+            $('#" . $form->id . " #" . Html::getInputId($messageModel, 'translation') . "').on('blur', function(){
+                $('#" . $form->id . "').trigger('submit');
+            });
         $('#" . $form->id . "').on('beforeSubmit', function(event, jqXHR, settings) {
             var form = $(this);
             if(form.find('.has-error').length) {
@@ -46,9 +52,10 @@ if($messageModel->isNewRecord)
                     console.log(data)
                 }
             });
-            return false;
-        });");
+        return false;
+    });");
 
     ?>
 
+</div>
 </div>
