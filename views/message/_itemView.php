@@ -22,6 +22,7 @@ if($messageModel->isNewRecord)
             </div>
             <div class="nine columns info">
                 <?= $form->field($messageModel, 'translation')->label(''); ?>
+                <button> Save </button>
             </div>
         </div>
         <?= Html::hiddenInput(Html::getInputName($messageModel, 'language'), $messageModel->language) ?>
@@ -56,6 +57,5 @@ if($messageModel->isNewRecord)
     });");
 
     ?>
-
 </div>
 </div>
