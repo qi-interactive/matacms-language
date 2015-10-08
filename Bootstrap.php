@@ -90,7 +90,22 @@ class Bootstrap extends \mata\base\Bootstrap {
 	            ['INNER JOIN', 'matacms_language_mapping', 'matacms_language_mapping.ModelId = ' . $tableAlias . '.' . $tablePrimaryKey],
 	            ['INNER JOIN', 'matacms_language_mapping target', "target.Grouping = matacms_language_mapping.Grouping and target.Language = '" . Yii::$app->language . "' and target.Model = '" . $modelClass . "'"]
 	        ];
-	        $languageQuery->where = is_array($activeQuery->where[1]) ? $activeQuery->where[1] : $activeQuery->where;
+
+			$activeQueryWhere = $activeQuery->where;
+
+			if(is_array($activeQueryWhere)) {
+				$activeQueryWhere = $this->isAssociativeArray($activeQueryWhere) ? $activeQueryWhere : $activeQueryWhere[1];
+			}
+
+	        $languageQuery->where = is_array($activeQuery->where) ? $activeQueryWhere : $activeQueryWhere;
+
+			if(is_array($languageQuery->where)) {
+				$newWhere = [];
+				foreach($languageQuery->where as $column => $param) {
+					$newWhere[$tableAlias . '.' . $column] = $param;
+				}
+				$languageQuery->where = $newWhere;
+			}
 
 	        // Yii::info(\yii\helpers\VarDumper::dumpAsString($activeQuery->where[1]));
 	        // Yii::info(\yii\helpers\VarDumper::dumpAsString($languageQuery->where));
@@ -104,7 +119,12 @@ class Bootstrap extends \mata\base\Bootstrap {
 	        $activeQuery->params = array_merge($activeQuery->params, $languageQuery->createCommand()->params);
 	        if (is_array($activeQuery->where)) {
 
-	            $activeQuery->where[1] = $tablePrimaryKey . " IN (" . $langaugeQuerySql . ")";
+				if($this->isAssociativeArray($activeQuery->where)) {
+					$activeQuery->where = $tablePrimaryKey . " IN (" . $langaugeQuerySql . ")";
+				}
+				else {
+					$activeQuery->where[1] = $tablePrimaryKey . " IN (" . $langaugeQuerySql . ")";
+				}
 
 	        } else {
 
@@ -114,6 +134,11 @@ class Bootstrap extends \mata\base\Bootstrap {
 	    }
 
 		return $activeQuery;
+	}
+
+	private function isAssociativeArray($array)
+	{
+		return (array_values($array) !== $array);
 	}
 
 	private function hasLanguageColumn($tableAlias)
