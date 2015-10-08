@@ -32,14 +32,14 @@ class SwitchLanguageAction extends \yii\base\Action
 		$language = Yii::$app->request->getBodyParam('language');
 
 		if($language == null)
-			throw new \yii\web\HttpException('Languge has to be set');
+			throw new \yii\web\HttpException('Language has to be set');
 
 		$module = \Yii::$app->getModule("language");
 
 		$supportedLanguages = $module->getSupportedLanguages();
 
 		if(!array_key_exists($language, $supportedLanguages))
-			throw new \yii\web\HttpException('Languge is not supported');
+			throw new \yii\web\HttpException('Language is not supported');
 
 		return $language;
 

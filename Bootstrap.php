@@ -1,10 +1,10 @@
 <?php
 
 /**
- * @link http://www.matacms.com/
- * @copyright Copyright (c) 2015 Qi Interactive Limited
- * @license http://www.matacms.com/license/
- */
+* @link http://www.matacms.com/
+* @copyright Copyright (c) 2015 Qi Interactive Limited
+* @license http://www.matacms.com/license/
+*/
 
 namespace matacms\language;
 
@@ -15,6 +15,8 @@ use mata\base\MessageEvent;
 use mata\db\ActiveQuery;
 use yii\web\HttpException;
 use yii\helpers\VarDumper;
+use mata\helpers\BehaviorHelper;
+use mata\language\models\LanguageMapping;
 
 class Bootstrap extends \mata\base\Bootstrap {
 
@@ -27,36 +29,91 @@ class Bootstrap extends \mata\base\Bootstrap {
 
 			$preferredLanguage = isset($app->request->cookies['language']) ? (string)$app->request->cookies['language'] : null;
 
-	        if (empty($preferredLanguage)) {
-	            $preferredLanguage = $app->request->getPreferredLanguage($supportedLanguages);
-	        }
+			if (empty($preferredLanguage)) {
+				$preferredLanguage = $app->request->getPreferredLanguage($supportedLanguages);
+			}
 			$app->language = $preferredLanguage;
 		}
+
+		Event::on(ActiveQuery::class, ActiveQuery::EVENT_BEFORE_PREPARE_STATEMENT, function(Event $event) {
+
+			$activeQuery = $event->sender;
+			$modelClass = $activeQuery->modelClass;
+
+			$sampleModelObject = new $modelClass;
+
+			if (!is_a(\Yii::$app, "yii\console\Application") && !is_a(\Yii::$app, "matacms\web\Application") && BehaviorHelper::hasBehavior($sampleModelObject, \matacms\language\behaviors\LanguageBehavior::class)) {
+
+				$modelId = $sampleModelObject->getDocumentId()->getPk();
+				$documentIdBase = $sampleModelObject->getDocumentId()->getId();
+				$tableAlias = $activeQuery->getQueryTableName($activeQuery)[0];
+
+				if (count($modelClass::primaryKey()) > 1) {
+					throw new HttpException(500, sprintf("Composite keys are not handled yet. Table alias is %s", $tableAlias));
+				}
+
+				$activeQuery = $this->addLanguageQuery($activeQuery, $modelClass, $tableAlias);
+
+
+			}
+		});
 
 		Event::on(BaseActiveRecord::class, BaseActiveRecord::EVENT_BEFORE_INSERT, function(Event $event) {
 			$model = $event->sender;
 			$hasLanguageColumn = $this->hasLanguageColumn($model::tableName());
 			if($hasLanguageColumn)
-				$this->setLanguage($event->sender);
+			$this->setLanguage($event->sender);
 		});
 
 		Event::on(BaseActiveRecord::class, BaseActiveRecord::EVENT_BEFORE_UPDATE, function(Event $event) {
 			$model = $event->sender;
 			$hasLanguageColumn = $this->hasLanguageColumn($model::tableName());
 			if($hasLanguageColumn)
-				$this->setLanguage($event->sender);
+			$this->setLanguage($event->sender);
 		});
 
-		Event::on(ActiveQuery::class, ActiveQuery::EVENT_BEFORE_PREPARE_STATEMENT, function(Event $event) {
+	}
 
-			$activeQuery = $event->sender;
-			$tableAlias = $activeQuery->getQueryTableName($activeQuery)[0];
-			$hasLanguageColumn = $this->hasLanguageColumn($tableAlias);
+	private function addLanguageQuery($activeQuery, $modelClass, $tableAlias) {
 
-			if($hasLanguageColumn)
-				$this->addLanguageCondition($activeQuery, $tableAlias);
-		});
+	    $tablePrimaryKey = $modelClass::primaryKey()[0];
 
+	    if($activeQuery->where != null) {
+
+
+	        $modelClass = str_replace("\\", "\\\\\\",  $modelClass);
+
+	        $languageQuery = new \yii\db\Query();
+	        $languageQuery->from = [$tableAlias];
+	        $languageQuery->select = ['target.ModelId'];
+	        $languageQuery->join = [
+	            ['INNER JOIN', 'matacms_language_mapping', 'matacms_language_mapping.ModelId = ' . $tableAlias . '.' . $tablePrimaryKey],
+	            ['INNER JOIN', 'matacms_language_mapping target', "target.Grouping = matacms_language_mapping.Grouping and target.Language = '" . Yii::$app->language . "' and target.Model = '" . $modelClass . "'"]
+	        ];
+	        $languageQuery->where = is_array($activeQuery->where[1]) ? $activeQuery->where[1] : $activeQuery->where;
+
+	        // Yii::info(\yii\helpers\VarDumper::dumpAsString($activeQuery->where[1]));
+	        // Yii::info(\yii\helpers\VarDumper::dumpAsString($languageQuery->where));
+
+	        $langaugeQuerySql = $languageQuery->createCommand()->sql;
+
+	        // Yii::info(\yii\helpers\VarDumper::dumpAsString($languageQuery->createCommand()->params));
+
+	        // Yii::info(\yii\helpers\VarDumper::dumpAsString($langaugeQuerySql));
+
+	        $activeQuery->params = array_merge($activeQuery->params, $languageQuery->createCommand()->params);
+	        if (is_array($activeQuery->where)) {
+
+	            $activeQuery->where[1] = $tablePrimaryKey . " IN (" . $langaugeQuerySql . ")";
+
+	        } else {
+
+	            $activeQuery->where = $tablePrimaryKey . " IN (" . $langaugeQuerySql . ")";
+	        }
+
+	    }
+
+		return $activeQuery;
 	}
 
 	private function hasLanguageColumn($tableAlias)
@@ -64,12 +121,6 @@ class Bootstrap extends \mata\base\Bootstrap {
 		return Yii::$app->getDb()->getTableSchema($tableAlias)->getColumn('Language');
 	}
 
-	private function addLanguageCondition($activeQuery, $tableAlias)
-	{
-
-		$activeQuery->andWhere("$tableAlias.`Language` = '" . Yii::$app->language . "'");
-
-	}
 
 	private function setLanguage($model)
 	{
@@ -79,7 +130,9 @@ class Bootstrap extends \mata\base\Bootstrap {
 
 		$language = Yii::$app->language;
 
-		if(empty($model->Language))
+		if(empty($model->Language)) {
 			$model->Language = $language;
+		}
+
 	}
 }

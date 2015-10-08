@@ -19,6 +19,12 @@ Installation
 Changelog
 ---------
 
+## 1.0.1-alpha, October 8, 2015
+
+- Added LanguageMapping with migration
+- Added LanguageBehavior for saving and deleting LanguageMapping
+- Updated Bootstrap with ActiveQuery::EVENT_BEFORE_PREPARE_STATEMENT to be used only for yii\web\Application on models with LanguageBehavior
+
 ## 1.0.0-alpha, September 18, 2015
 
 - Initial release.
