@@ -165,10 +165,8 @@ class Bootstrap extends \mata\base\Bootstrap {
 		if (is_object($model) == false || !$model->hasAttribute('Language'))
 			return;
 
-		$language = Yii::$app->language;
-
 		if(empty($model->Language)) {
-			$model->Language = $language;
+			$model->Language = Yii::$app->request->get('language') ?: Yii::$app->language;
 		}
 
 	}
