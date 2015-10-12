@@ -66,7 +66,13 @@ class LanguageBehavior extends Behavior {
 
         if (is_a(Yii::$app, "matacms\web\Application") && $this->_createVersion) {
             $model = $event->sender;
-            $grouping = Yii::$app->request->get('languageGroup') ?: md5($model->getDocumentId()->getId());
+
+            if(isset($_GET[$model->formName()]) && isset($_GET[$model->formName()]['languageGroup'])) {
+                $grouping = $_GET[$model->formName()]['languageGroup'];
+            }
+            else {
+                $grouping = md5($model->getDocumentId()->getId());
+            }
 
             $languageMapping = new LanguageMapping;
             $languageMapping->attributes = [
