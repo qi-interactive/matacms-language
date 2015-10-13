@@ -40,6 +40,11 @@ class Bootstrap extends \mata\base\Bootstrap {
 			$activeQuery = $event->sender;
 			$modelClass = $activeQuery->modelClass;
 
+			// Handle requests coming from Search models
+			if (substr_compare($modelClass, 'Search', -6, 6) === 0) {
+				$modelClass = substr($modelClass, 0, -6);
+			}
+
 			$sampleModelObject = new $modelClass;
 
 			if (!is_a(\Yii::$app, "yii\console\Application") && !is_a(\Yii::$app, "matacms\web\Application") && BehaviorHelper::hasBehavior($sampleModelObject, \matacms\language\behaviors\LanguageBehavior::class)) {
@@ -76,20 +81,20 @@ class Bootstrap extends \mata\base\Bootstrap {
 
 	private function addLanguageQuery($activeQuery, $modelClass, $tableAlias) {
 
-	    $tablePrimaryKey = $modelClass::primaryKey()[0];
+		$tablePrimaryKey = $modelClass::primaryKey()[0];
 
-	    if($activeQuery->where != null) {
+		if($activeQuery->where != null) {
 
 
-	        $modelClass = str_replace("\\", "\\\\\\",  $modelClass);
+			$modelClass = str_replace("\\", "\\\\\\",  $modelClass);
 
-	        $languageQuery = new \yii\db\Query();
-	        $languageQuery->from = [$tableAlias];
-	        $languageQuery->select = ['target.ModelId'];
-	        $languageQuery->join = [
-	            ['INNER JOIN', 'matacms_language_mapping', 'matacms_language_mapping.ModelId = ' . $tableAlias . '.' . $tablePrimaryKey],
-	            ['INNER JOIN', 'matacms_language_mapping target', "target.Grouping = matacms_language_mapping.Grouping and target.Language = '" . Yii::$app->language . "' and target.Model = '" . $modelClass . "'"]
-	        ];
+			$languageQuery = new \yii\db\Query();
+			$languageQuery->from = [$tableAlias];
+			$languageQuery->select = ['target.ModelId'];
+			$languageQuery->join = [
+				['INNER JOIN', 'matacms_language_mapping', 'matacms_language_mapping.ModelId = ' . $tableAlias . '.' . $tablePrimaryKey],
+				['INNER JOIN', 'matacms_language_mapping target', "target.Grouping = matacms_language_mapping.Grouping and target.Language = '" . Yii::$app->language . "' and target.Model = '" . $modelClass . "'"]
+			];
 
 			$activeQueryWhere = $activeQuery->initialWhere;
 
@@ -99,7 +104,7 @@ class Bootstrap extends \mata\base\Bootstrap {
 				$activeQueryWhere = $this->isAssociativeArray($activeQueryWhere) ? $activeQueryWhere : $activeQueryWhere;
 			}
 
-	        $languageQuery->where = $activeQueryWhere;
+			$languageQuery->where = $activeQueryWhere;
 
 			// var_dump($languageQuery->where);
 
@@ -115,17 +120,17 @@ class Bootstrap extends \mata\base\Bootstrap {
 
 
 
-	        // Yii::info(\yii\helpers\VarDumper::dumpAsString($activeQuery->where[1]));
-	        // Yii::info('WHERE:: ' . \yii\helpers\VarDumper::dumpAsString($languageQuery->where));
+			// Yii::info(\yii\helpers\VarDumper::dumpAsString($activeQuery->where[1]));
+			// Yii::info('WHERE:: ' . \yii\helpers\VarDumper::dumpAsString($languageQuery->where));
 
-	        $langaugeQuerySql = $languageQuery->createCommand()->sql;
+			$langaugeQuerySql = $languageQuery->createCommand()->sql;
 
-	        // Yii::info(\yii\helpers\VarDumper::dumpAsString($languageQuery->createCommand()->params));
+			// Yii::info(\yii\helpers\VarDumper::dumpAsString($languageQuery->createCommand()->params));
 
-	        // Yii::info(\yii\helpers\VarDumper::dumpAsString($langaugeQuerySql));
+			// Yii::info(\yii\helpers\VarDumper::dumpAsString($langaugeQuerySql));
 
-	        $activeQuery->params = array_merge($activeQuery->params, $languageQuery->createCommand()->params);
-	        if (is_array($activeQuery->where)) {
+			$activeQuery->params = array_merge($activeQuery->params, $languageQuery->createCommand()->params);
+			if (is_array($activeQuery->where)) {
 
 				if($this->isAssociativeArray($activeQuery->where)) {
 					$activeQuery->where = $tablePrimaryKey . " IN (" . $langaugeQuerySql . ")";
@@ -134,16 +139,16 @@ class Bootstrap extends \mata\base\Bootstrap {
 					$activeQuery->where[1] = $tablePrimaryKey . " IN (" . $langaugeQuerySql . ")";
 				}
 
-	        } else {
+			} else {
 
-	            $activeQuery->where = $tablePrimaryKey . " IN (" . $langaugeQuerySql . ")";
-	        }
+				$activeQuery->where = $tablePrimaryKey . " IN (" . $langaugeQuerySql . ")";
+			}
 
 			// var_dump($activeQuery->where);
 
 			// exit;
 
-	    }
+		}
 
 		return $activeQuery;
 	}
@@ -163,7 +168,7 @@ class Bootstrap extends \mata\base\Bootstrap {
 	{
 
 		if (is_object($model) == false || !$model->hasAttribute('Language'))
-			return;
+		return;
 
 		if(empty($model->Language)) {
 			$model->Language = Yii::$app->request->get('language') ?: Yii::$app->language;
