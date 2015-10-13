@@ -33,28 +33,36 @@ if($messageModel->isNewRecord)
 
         <?php
         $this->registerJs("
-            $('#" . $form->id . " #" . Html::getInputId($messageModel, 'translation') . "').on('blur', function(){
-                $('#" . $form->id . "').trigger('submit');
-            });
-        $('#" . $form->id . "').on('beforeSubmit', function(event, jqXHR, settings) {
-            var form = $(this);
-            if(form.find('.has-error').length) {
+            $('#infinite-list-view').on('blur', 'form #" . Html::getInputId($messageModel, 'translation') . "', function(){
+                $(this).parents('form').trigger('beforeSubmit');
                 return false;
-            }
-            $.ajax({
-                url: form.attr('action'),
-                type: 'POST',
-                data: form.serialize(),
-                dataType: 'json',
-                success: function(data) {
-                    console.log(data)
-                },
-                error: function(data) {
-                    console.log(data)
-                }
             });
-        return false;
-    });");
+
+            $('#infinite-list-view').on('click', 'form button', function(){
+                $(this).parents('form').trigger('beforeSubmit');
+                return false;
+            });
+
+            $('#infinite-list-view').on('beforeSubmit', 'form', function(event, jqXHR, settings) {
+                var form = $(this);
+                if(form.find('.has-error').length) {
+                    return false;
+                }
+                $.ajax({
+                    url: form.attr('action'),
+                    type: 'POST',
+                    data: form.serialize(),
+                    dataType: 'json',
+                    success: function(data) {
+                        console.log(data)
+                    },
+                    error: function(data) {
+                        console.log(data)
+                    }
+                });
+            return false;
+            });
+        ");
 
     ?>
 </div>
