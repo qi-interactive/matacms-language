@@ -3,10 +3,13 @@
     'id' => 'language-selector-modal'
     ]);
 
+    $originalCreateURL = $createURL;
+
     $supportedLanguages = Yii::$app->getModule('language')->getSupportedLanguages();
     foreach($supportedLanguages as $locale => $language):
+        $createURL = strpos($originalCreateURL, '?') ? $originalCreateURL . '&language=' . $locale : $originalCreateURL . '?language=' . $locale;
     ?>
-    <a class="hi-icon-effect-2" href="<?= $createURL ?>?language=<?= $locale ?>">
+    <a class="hi-icon-effect-2" href="<?= $createURL ?>">
         <div class="inner-container row">
             <div class="five columns">
                 <div class="hi-icon hi-icon-cog"></div>
