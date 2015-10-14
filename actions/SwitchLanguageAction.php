@@ -26,10 +26,14 @@ class SwitchLanguageAction extends \yii\base\Action
 
 	private function getLanguage()
 	{
-		if(!Yii::$app->request->getIsPost())
-			throw new \yii\web\MethodNotAllowedHttpException('Method not allowed');
+		if(Yii::$app->request->getIsGet())
+			$language = Yii::$app->request->get('language');
 
-		$language = Yii::$app->request->getBodyParam('language');
+		else if(Yii::$app->request->getIsPost())
+			$language = Yii::$app->request->getBodyParam('language');
+
+		else
+			$language = null;
 
 		if($language == null)
 			throw new \yii\web\HttpException('Language has to be set');
