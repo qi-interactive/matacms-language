@@ -19,6 +19,10 @@ Installation
 Changelog
 ---------
 
+## 1.0.1.1-alpha, October 30, 2015
+
+- Updated getSupportedLanguages() method to return default supported language from the application as associative array
+
 ## 1.0.1-alpha, October 8, 2015
 
 - Added LanguageMapping with migration

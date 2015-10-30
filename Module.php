@@ -46,7 +46,7 @@ class Module extends BaseModule {
 	public function getSupportedLanguages()
 	{
 		$supportedLanguages = Setting::findValue('SUPPORTED_LANGUAGES');
-		return $supportedLanguages != null ? unserialize($supportedLanguages) : [\Yii::$app->language];
+		return $supportedLanguages != null ? unserialize($supportedLanguages) : [\Yii::$app->language => \Yii::$app->language];
 	}
 
     public static function t($message, $params = [], $language = null)
