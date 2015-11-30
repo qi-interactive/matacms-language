@@ -86,7 +86,7 @@ class Bootstrap extends \mata\base\Bootstrap {
 		if($activeQuery->where != null) {
 
 
-			$modelClass = str_replace("\\", "\\\\\\",  $modelClass);
+			$modelClass = str_replace("\\", "\\\\",  $modelClass);
 
 			$languageQuery = new \yii\db\Query();
 			$languageQuery->from = [$tableAlias];
