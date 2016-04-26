@@ -26,6 +26,8 @@ class LanguageBehavior extends Behavior {
 
     public $_languageGroup = null;
 
+    public $availableLanguages = "";
+
     public function events() {
 
         $events = [
@@ -138,5 +140,42 @@ class LanguageBehavior extends Behavior {
 		}
 
 	}
+
+    public function getAvailableLanguages() {
+        if(!empty($this->availableLanguages)) {
+            return explode(",", $this->availableLanguages);
+        }
+        else {
+            $mappings = LanguageMapping::find()->where(['Grouping' => $this->getLanguageGrouping()->Grouping])->all();
+
+            $retVal = [];
+
+            foreach($mappings as $mapping)
+            $retVal[] = $mapping->Language;
+
+            $this->availableLanguages = implode(",", $retVal);
+            return $retVal;
+        }
+
+    }
+
+    public function getLanguageVersionId($language)
+    {
+        return LanguageMapping::find()->where(['Grouping' => $this->getLanguageGrouping()->Grouping, 'Language' => $language])->one();
+    }
+
+    public function getLanguageGrouping()
+    {
+        return LanguageMapping::find()->where(['DocumentId' => $this->owner->getDocumentId()->getId(), 'Language' => $this->owner->Language])->one();
+    }
+
+
+    // TODO TEST THIS!
+    public function getLanguageMappings($grouping = null) {
+        $grouping = $grouping != null ? $grouping : $this->getLanguageGrouping()->Grouping;
+        // TODO: to be refactored with take english if exists or first one available
+        return LanguageMapping::find()->where('Grouping = :grouping', [':grouping' => $grouping])->all();
+        // return $this->hasMany(LanguageMapping::className(), ['ModelId' => 'Id'])->where(['Grouping' => $this->getLanguageGrouping()->Grouping])->all();
+    }
 
 }
