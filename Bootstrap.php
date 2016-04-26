@@ -25,6 +25,9 @@ class Bootstrap extends \mata\base\Bootstrap {
 		if (!is_a(\Yii::$app, "yii\console\Application")) {
 			$module = \Yii::$app->getModule("language");
 
+			if(!$module)
+				return;
+
 			$supportedLanguages = array_keys($module->getSupportedLanguages());
 
 			$preferredLanguage = isset($app->request->cookies['language']) ? (string)$app->request->cookies['language'] : null;
@@ -34,6 +37,15 @@ class Bootstrap extends \mata\base\Bootstrap {
 			}
 			$app->language = $preferredLanguage;
 		}
+
+		Event::on(BaseActiveRecord::class, BaseActiveRecord::EVENT_INIT, function(Event $event) {
+			$model = $event->sender;
+			if ($model->hasAttribute('Language') && !is_a($model, "matacms\language\models\LanguageMapping")) {
+				$model->attachBehavior('language', [
+					'class' => \matacms\language\behaviors\LanguageBehavior::className()
+				]);
+			}
+		});
 
 		Event::on(ActiveQuery::class, ActiveQuery::EVENT_BEFORE_PREPARE_STATEMENT, function(Event $event) {
 
@@ -61,20 +73,6 @@ class Bootstrap extends \mata\base\Bootstrap {
 
 
 			}
-		});
-
-		Event::on(BaseActiveRecord::class, BaseActiveRecord::EVENT_BEFORE_INSERT, function(Event $event) {
-			$model = $event->sender;
-			$hasLanguageColumn = $this->hasLanguageColumn($model::tableName());
-			if($hasLanguageColumn)
-			$this->setLanguage($event->sender);
-		});
-
-		Event::on(BaseActiveRecord::class, BaseActiveRecord::EVENT_BEFORE_UPDATE, function(Event $event) {
-			$model = $event->sender;
-			$hasLanguageColumn = $this->hasLanguageColumn($model::tableName());
-			if($hasLanguageColumn)
-			$this->setLanguage($event->sender);
 		});
 
 	}
@@ -158,21 +156,4 @@ class Bootstrap extends \mata\base\Bootstrap {
 		return (array_values($array) !== $array);
 	}
 
-	private function hasLanguageColumn($tableAlias)
-	{
-		return Yii::$app->getDb()->getTableSchema($tableAlias)->getColumn('Language');
-	}
-
-
-	private function setLanguage($model)
-	{
-
-		if (is_object($model) == false || !$model->hasAttribute('Language'))
-		return;
-
-		if(empty($model->Language)) {
-			$model->Language = Yii::$app->request->get('language') ?: Yii::$app->language;
-		}
-
-	}
 }

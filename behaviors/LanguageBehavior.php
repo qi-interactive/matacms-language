@@ -16,6 +16,7 @@ use matacms\language\models\LanguageMapping;
 use yii\web\ServerErrorHttpException;
 use \mata\base\MessageEvent;
 use mata\helpers\BehaviorHelper;
+use yii\helpers\VarDumper;
 
 class LanguageBehavior extends Behavior {
 
@@ -28,12 +29,28 @@ class LanguageBehavior extends Behavior {
     public function events() {
 
         $events = [
+            BaseActiveRecord::EVENT_BEFORE_INSERT => "beforeInsert",
+            BaseActiveRecord::EVENT_BEFORE_UPDATE => "beforeUpdate",
             BaseActiveRecord::EVENT_AFTER_FIND => "afterFind",
             BaseActiveRecord::EVENT_AFTER_INSERT => "afterSave",
             BaseActiveRecord::EVENT_AFTER_DELETE => "afterDelete"
         ];
 
         return $events;
+    }
+
+    public function beforeInsert(Event $event)
+    {
+        $model = $event->sender;
+        if($model->hasAttribute('Language'))
+            $this->setLanguage($event->sender);
+    }
+
+    public function beforeUpdate(Event $event)
+    {
+        $model = $event->sender;
+        if($model->hasAttribute('Language'))
+            $this->setLanguage($event->sender);
     }
 
     public function afterFind(Event $event) {
@@ -84,7 +101,7 @@ class LanguageBehavior extends Behavior {
             ];
 
             if ($languageMapping->save() == false)
-              throw new ServerErrorHttpException($languageMapping->getTopError());
+                throw new ServerErrorHttpException(VarDumper::dumpAsString($languageMapping->attributes));
         }
 
     }
@@ -112,5 +129,14 @@ class LanguageBehavior extends Behavior {
         ])->one();
 
     }
+
+    private function setLanguage($model)
+	{
+
+		if(empty($model->Language)) {
+			$model->Language = Yii::$app->request->get('language') ?: Yii::$app->language;
+		}
+
+	}
 
 }
