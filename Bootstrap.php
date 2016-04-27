@@ -53,10 +53,8 @@ class Bootstrap extends \mata\base\Bootstrap {
 			$modelClass = $activeQuery->modelClass;
 
 			// Handle requests coming from Search models
-			$isSearchModel = substr_compare($modelClass, 'Search', -6, 6) === 0;
-			if ($isSearchModel) {
+			if (substr_compare($modelClass, 'Search', -6, 6) === 0)
 				$modelClass = substr($modelClass, 0, -6);
-			}
 
 			$sampleModelObject = new $modelClass;
 
@@ -74,10 +72,26 @@ class Bootstrap extends \mata\base\Bootstrap {
 					$activeQuery = $this->addLanguageQuery($activeQuery, $modelClass, $tableAlias);
 
 				}
+			}
 
-				else if(is_a(\Yii::$app, "matacms\web\Application") && $isSearchModel) {
+
+		});
+
+		Event::on(ActiveQuery::class, ActiveQuery::EVENT_BEFORE_PREPARE_STATEMENT_FOR_SEARCH, function(Event $event) {
+
+			$activeQuery = $event->message;
+
+			$modelClass = $activeQuery->modelClass;
+
+			// Handle requests coming from Search models
+			if (substr_compare($modelClass, 'Search', -6, 6) === 0)
+				$modelClass = substr($modelClass, 0, -6);
+
+			$sampleModelObject = new $modelClass;
+
+			if(BehaviorHelper::hasBehavior($sampleModelObject, \matacms\language\behaviors\LanguageBehavior::class)) {
+				if(is_a(\Yii::$app, "matacms\web\Application"))
 					$activeQuery = $this->partitionByLanguage($activeQuery);
-				}
 			}
 
 
