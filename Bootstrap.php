@@ -103,72 +103,53 @@ class Bootstrap extends \mata\base\Bootstrap {
 
 		$tablePrimaryKey = $modelClass::primaryKey()[0];
 
-		if($activeQuery->where != null) {
 
 
-			$modelClass = str_replace("\\", "\\\\",  $modelClass);
+		$modelClass = str_replace("\\", "\\\\",  $modelClass);
 
-			$languageQuery = new \yii\db\Query();
-			$languageQuery->from = [$tableAlias];
-			$languageQuery->select = ['target.ModelId'];
-			$languageQuery->join = [
-				['INNER JOIN', 'matacms_language_mapping', 'matacms_language_mapping.ModelId = ' . $tableAlias . '.' . $tablePrimaryKey],
-				['INNER JOIN', 'matacms_language_mapping target', "target.Grouping = matacms_language_mapping.Grouping and target.Language = '" . Yii::$app->language . "' and target.Model = '" . $modelClass . "'"]
-			];
+		$languageQuery = new \yii\db\Query();
+		$languageQuery->from = [$tableAlias];
+		$languageQuery->select = ['target.ModelId'];
+		$languageQuery->join = [
+			['INNER JOIN', 'matacms_language_mapping', 'matacms_language_mapping.ModelId = ' . $tableAlias . '.' . $tablePrimaryKey],
+			['INNER JOIN', 'matacms_language_mapping target', "target.Grouping = matacms_language_mapping.Grouping and target.Language = '" . Yii::$app->language . "' and target.Model = '" . $modelClass . "'"]
+		];
 
-			$activeQueryWhere = $activeQuery->initialWhere;
+		$activeQueryWhere = $activeQuery->initialWhere;
 
-			// Yii::info('INITIAL WHERE:: ' . \yii\helpers\VarDumper::dumpAsString($activeQueryWhere));
+		Yii::info('INITIAL WHERE:: ' . \yii\helpers\VarDumper::dumpAsString($activeQueryWhere));
 
-			if(is_array($activeQueryWhere)) {
-				$activeQueryWhere = $this->isAssociativeArray($activeQueryWhere) ? $activeQueryWhere : $activeQueryWhere;
+		if(is_array($activeQueryWhere)) {
+			$activeQueryWhere = $this->isAssociativeArray($activeQueryWhere) ? $activeQueryWhere : $activeQueryWhere;
+		}
+
+		$languageQuery->where = $activeQueryWhere;
+
+		if(is_array($languageQuery->where) && $this->isAssociativeArray($languageQuery->where)) {
+			$newWhere = [];
+			foreach($languageQuery->where as $column => $param) {
+				$newWhere[$tableAlias . '.' . $column] = $param;
 			}
+			$languageQuery->where = $newWhere;
+		}
 
-			$languageQuery->where = $activeQueryWhere;
+		$langaugeQuerySql = $languageQuery->createCommand()->sql;
 
-			// var_dump($languageQuery->where);
+		$activeQuery->params = array_merge($activeQuery->params, $languageQuery->createCommand()->params);
+		if (is_array($activeQuery->where)) {
 
-			// exit;
-
-			if(is_array($languageQuery->where) && $this->isAssociativeArray($languageQuery->where)) {
-				$newWhere = [];
-				foreach($languageQuery->where as $column => $param) {
-					$newWhere[$tableAlias . '.' . $column] = $param;
-				}
-				$languageQuery->where = $newWhere;
-			}
-
-
-
-			// Yii::info(\yii\helpers\VarDumper::dumpAsString($activeQuery->where[1]));
-			// Yii::info('WHERE:: ' . \yii\helpers\VarDumper::dumpAsString($languageQuery->where));
-
-			$langaugeQuerySql = $languageQuery->createCommand()->sql;
-
-			// Yii::info(\yii\helpers\VarDumper::dumpAsString($languageQuery->createCommand()->params));
-
-			// Yii::info(\yii\helpers\VarDumper::dumpAsString($langaugeQuerySql));
-
-			$activeQuery->params = array_merge($activeQuery->params, $languageQuery->createCommand()->params);
-			if (is_array($activeQuery->where)) {
-
-				if($this->isAssociativeArray($activeQuery->where)) {
-					$activeQuery->where = $tablePrimaryKey . " IN (" . $langaugeQuerySql . ")";
-				}
-				else {
-					$activeQuery->where[1] = $tablePrimaryKey . " IN (" . $langaugeQuerySql . ")";
-				}
-
-			} else {
-
+			if($this->isAssociativeArray($activeQuery->where)) {
 				$activeQuery->where = $tablePrimaryKey . " IN (" . $langaugeQuerySql . ")";
 			}
+			else {
+				$activeQuery->where[1] = $tablePrimaryKey . " IN (" . $langaugeQuerySql . ")";
+			}
 
-			// var_dump($activeQuery->where);
+		} else {
 
-			// exit;
-
+			$activeQuery->where = $tablePrimaryKey . " IN (" . $langaugeQuerySql . ")";
 		}
+
 
 		return $activeQuery;
 	}
